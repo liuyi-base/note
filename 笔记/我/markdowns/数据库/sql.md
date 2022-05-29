@@ -97,7 +97,7 @@ show tables；
 
 ### 2.3、字符类型
 
-char长度固定
+ char长度固定
 
 varchar不固定，可以设置最大长度
 

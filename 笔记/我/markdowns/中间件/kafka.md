@@ -1,6 +1,8 @@
 # 一、kafka概述
 
-## 1.1、消息队列
+### 1.1、消息队列
+
+![image-20220422145256904](../../images/image-20220422145256904.png)
 
 ### 1.1.1、两种模式
 
@@ -69,7 +71,7 @@ index 和 log 文件以当前 segment 的第一条消息的 offset 命名。下�
 
    0：producer 不等待 broker 的 ack，这一操作提供了一个最低的延迟，broker 一接收到还没有写入磁盘就已经返回，当 broker 故障时有可能**丢失数据**； 
 
-   1：producer 等待 broker 的 ack，partition 的 leader 落盘成功后返回 ack，如果在 follower同步成功之前 leader 故障，那么将会**丢失数据**；
+   1：（默认）producer 等待 broker 的 ack，partition 的 leader 落盘成功后返回 ack，如果在 follower同步成功之前 leader 故障，那么将会**丢失数据**；
 
    -1（all）：producer 等待 broker 的 ack，partition 的 leader 和 follower 全部落盘成功后才返回 ack。但是如果在 follower 同步完成后，broker 发送 ack 之前，leader 发生故障，那么会造成**数据重复**
 
@@ -89,7 +91,7 @@ index 和 log 文件以当前 segment 的第一条消息的 offset 命名。下�
 
 **注意：这只能保证副本之间的数据一致性，并不能保证数据不丢失或者不重复。**
 
-### 2.2.3、Exactly Once语义
+### 2.2.3、Exactly Onc e语义
 
 1. At Least Once + 幂等性 = Exactly Once
 2. 要启用幂等性，只需要将 Producer 的参数中 enable.idompotence 设置为 true 即可

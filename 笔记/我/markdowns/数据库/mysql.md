@@ -1,16 +1,23 @@
-# mysql
+# mysql原理与调优
 
 ## 一、介绍
 
 1. 第2-11章：调优
 2. 第12-14章：事务
 3. 第16-18章：日志与主从
+4. 优化思路：
+
+![image-20220425164543461](../../images/image-20220425164543461.png)
+
+   5,sql执行顺序
+
+![image-20220427111326620](../../images/image-20220427111326620.png)
 
 ## 二、数据库逻辑架构
 
-解析器：解析树、预处理器、新解析树 
+![image-20220425142730843](../../images/image-20220425142730843.png)
 
-查询优化：逻辑优化，物理优化
+
 
 ![image-20220216203630989](../../images/image-20220216203630989.png)
 
@@ -241,76 +248,7 @@ InnoDB的所有非聚簇索引都引用主键作为data域。
 5. like以通配符%开头索引失效
 6. 不等于(!=或者<>)索引失效
 
-
-## 五、性能分析工具的使用
-
-### 5.1、步骤
-
-1. 是否存在周期性波动，如果是，修改或查看缓存状态，如果不是或无法解决问题，见2
-
-2. 开启慢查询（explain show profiling）如果sql等待时间长--见3，如果sql执行时间长，见4
-
-3. sql等待时间长，调优服务器参数，如果不行，见五
-
-4. sql执行时间长，
-
-   （1）修改索引设计
-
-   （2）JOIN表过多，需要优化
-
-   （3）数据表设计优化
-
-5. 更改mysql架构，读写分离，分库分表
-
-### 5.2、方法
-
-#### 5.2.1、各种参数
-
-show status like 'last_query_cost'
-
-• Connections：连接MySQL服务器的次数。
-
-• Uptime：MySQL服务器的上线时间。
-
-• Slow_queries：慢查询的次数。 
-
-• Innodb_rows_read：Select查询返回的行数 
-
-• Innodb_rows_inserted：执行INSERT操作插入的行数 
-
-• Innodb_rows_updated：执行UPDATE操作更新的行数 
-
-• Innodb_rows_deleted：执行DELETE操作删除的行数 
-
-• Com_select：查询操作的次数。 
-
-• Com_insert：插入操作的次数。对于批量插入的 INSERT 操作，只累加一次。 
-
-• Com_update：更新操作的次数。 
-
-• Com_delete：删除操作的次数。
-
-#### 5.2.2、慢条件查询
-
-开启
-
-set global slow_query_log='ON'
-
-show variable like '%show_query_log%';
-
-设置慢查询阈值
-
-set global long_query_time = 1; 
-
-show global variables like '%long_query_time%'; 
-
-一共有多少条慢查询语句
-
-SHOW GLOBAL STATUS LIKE '%Slow_queries%'; 
-
-## 六、索引优化与查询优化
-
-### 6.1、索引优化
+### 4.4、索引优化
 
 1. 使用列的类型小的创建索引
 
@@ -328,11 +266,13 @@ SHOW GLOBAL STATUS LIKE '%Slow_queries%';
 
    这样也可以较少的建立一些索引。同时，由于"最左前缀原则"，可以增加联合索引的使用率。
 
+## 五、sql优化
+
 ![image-20220218102241714](../../images/image-20220218102241714.png)
 
-### 6.2、关联查询优化
+### 5.1、关联查询优化
 
-#### 6.2.1、join原理
+#### 6.1.1、join原理
 
 简单嵌套循环连接
 
@@ -340,17 +280,17 @@ SHOW GLOBAL STATUS LIKE '%Slow_queries%';
 
 块嵌套循环连接
 
-hash join（8.0.2之后）
+hash join（8.0.2之后） 
 
 <img src="../../images/image-20220221151211294.png" alt="image-20220221151211294" style="zoom:50%;" />
 
-#### 6.2.2、优化
+#### 6.1.2、优化
 
 驱动表一定会全表扫描，无法避免
 
 <img src="../../images/image-20220221151815413.png" alt="image-20220221151815413" style="zoom:67%;" />
 
-#### 6.2.3、总结
+#### 6.1.3、总结
 
 1. 保证被驱动表的JOIN字段已经创建了索引
 2. 需要JOIN 的字段，数据类型保持绝对一致。
@@ -360,7 +300,7 @@ hash join（8.0.2之后）
 6. 不建议使用子查询，建议将子查询SQL拆开结合程序多次查询，或使用 JOIN 来代替子查询。
 7. 衍生表建不了索引
 
-### 6.3、子查询优化
+### 6.2、子查询优化
 
 1. 执行子查询时，MySQL需要为内层查询语句的查询结果 建立一个临时表 ，然后外层查询语句从临时表
 
@@ -376,7 +316,7 @@ hash join（8.0.2之后）
 
 5. 不要用not in，可以使用join
 
-### 6.4、排序优化
+### 6.3、排序优化
 
 1. SQL 中，可以在 WHERE 子句和 ORDER BY 子句中使用索引，目的是在 WHERE 子句中 避免全表扫 
 
@@ -390,13 +330,13 @@ hash join（8.0.2之后）
 
 3. 无法使用 Index 时，需要对 FileSort 方式进行调优。
 
-### 6.5、group by优化
+### 6.4、group by优化
 
 和order by一致
 
 ![image-20220223152759210](../../images/image-20220223152759210.png)
 
-### 6.6、优化分页查询
+### 6.5、优化分页查询
 
 1. 在索引上完成排序分页操作，最后根据主键关联回原表查询所需要的其他列内容。
 
@@ -408,11 +348,11 @@ hash join（8.0.2之后）
 
    EXPLAIN SELECT * FROM student WHERE id > 2000000 LIMIT 10;
 
-### 6.7、索引下推
+### 6.6、索引下推
 
 是一种在存储引擎层使用索引过滤数据的一种优化方式。ICP可以减少存储引擎访问基表的次数以及MySQL服务器访问存储引擎（**回表**）的次数。
 
-### 6.8、普通索引vs唯一索引
+### 6.7、普通索引vs唯一索引
 
 查询过程效率微乎其微
 
@@ -420,7 +360,7 @@ hash join（8.0.2之后）
 
 写多读少时可以用change buffer，反之关闭
 
-### 6.9、其他优化
+### 6.8、其他优化
 
 1. exits和in如何选择
 
@@ -465,6 +405,121 @@ hash join（8.0.2之后）
      （3）redo / undo log buffer 中的空间
 
      （4）管理上述 3 种资源中的内部花费
+
+## 六、性能分析工具的使用
+
+session（不加global）：当前会话，也就是当前连接立即生效。
+
+global：全局，`不包含当前连接`，之后新获取的连接都会生效。
+
+### 6.1、步骤
+
+1. 是否存在周期性波动，如果是，修改或查看缓存状态，如果不是或无法解决问题，见2
+
+2. 查看慢查询，explain， show profiling如果sql等待时间长--见3，如果sql执行时间长，见4
+
+3. sql等待时间长，调优服务器参数，如果不行，见五
+
+4. sql执行时间长，
+
+   （1）修改索引设计
+
+   （2）JOIN表过多，需要优化
+
+   （3）数据表设计优化
+
+5. 更改mysql架构，读写分离，分库分表
+
+### 6.2、方法
+
+#### 6.2.1、慢条件查询
+
+```
+日志
+show variable like '%show_query_log%';
+set global slow_query_log='ON'
+
+设置慢查询阈值
+show global variables like '%long_query_time%'; 
+set global long_query_time = 1; 
+
+一共有多少条慢查询语句
+SHOW GLOBAL STATUS LIKE '%Slow_queries%'; 
+```
+
+#### 6.2.3、explain
+
+<img src="../../images/image-20220427142352308.png" alt="image-20220427142352308" style="zoom: 50%;" />
+
+1. select_type：
+
+   相关子查询：先查外面的查询，在查询里面，
+
+   ```
+   simple：无子查询，无union查询，连接查询也是simple
+   primary：union，union all查询中最外面的查询（union去重，union all不会）
+   union：union，union all中不是最外面的查询
+   union result：union去重时候会创建临时表
+   subquery：子查询不能转化为join，而且不是相关子查询
+   dependent subquery：子查询不能转化为join，而且是相关子查询
+   denpendent union:包含union，union all的大查询中，
+   最外的子查询 dependent subquery，其余 dependent union
+   dervived：派生表，临时生成的表 select key1，key2 as c from a，c派生
+   materialized：当子查询物化后与外层查询进行连接查询，物化的查询就叫materialized
+   ```
+
+2. type
+
+   system>const>eq_ref>ref>unique_subquery>range>index>all
+
+   至少要达到range级别
+
+   ```
+   system：当数据表中只有一条记录，并且存储引擎中的统计数据是精确的，如myisam，memeory
+   const：主键或唯一索引的索引列与常数比较
+   eq_ref：连接查询中，被驱动表是主键或唯一索引的索引列与常数比较
+   ref：使用普通的二级索引
+   unique_subquery：子查询，而且是等值匹配
+   range:使用索引的范围查询
+   index：可以使用索引，但是必须扫描全部的索引记录
+   all：全表扫描
+   ```
+
+3. possible_keys,keys
+
+   可能用到的索引，实际用到的索引
+
+4. key_len
+
+   索引字节长度
+
+5. ref
+
+   等值匹配的对象信息 ，常数或者某一列
+
+6. rows
+
+   预估的需要查询的条数
+
+7. filtered
+
+   过滤后剩余条数的百分比
+
+8. extra
+
+   ```
+   no tables used：没有涉及到表
+   impossible where 不可能的顾虑条件（不符合逻辑，比如1！=1）
+   using where：全表扫描或者使用了索引，但是需要用到where过滤
+   ```
+
+#### 6.2.4、profile
+
+```dart
+show variables like 'profiling'///查看是否开启
+show profiles;//查看已经执行过的语句，有序号
+show profile cpu, block io for query 14;///查看系统各部分耗时时间
+```
 
 ## 七、淘宝id设计
 
@@ -894,6 +949,8 @@ Sharding-JDBC 、阿里的TDDL是两种比较常用的实现。
 #### 14.1、定义
 
 MVCC 是通过数据行的多个版本管理来实现数据库的 并发控制 。这项技术使得在InnoDB的事务隔离级别下执行 一致性读 操作有了保证
+
+（无法解决幻读，因为出现update的时候，快照会被更新为最新版本）
 
 #### 14.2、快照读与当前读
 

@@ -72,7 +72,7 @@
 
 3. 双主双从
 
-4. <img src="../../images/image-20220413125253133.png" alt="image-20220413125253133" style="zoom:50%;" />
+   <img src="../../images/image-20220413125253133.png" alt="image-20220413125253133" style="zoom:50%;" />
 
 5. 级联复制
 
