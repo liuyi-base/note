@@ -52,7 +52,52 @@
 
 类的组成：属性，方法，构造器，代码块（普通块，静态块，构造块，同步块），内部类
 
-内部类：成员内部类 (静态的，非静态的) 和  局部内部类（位置：方法内，块内，构造器内）
+内部类：
+
+1. 静态内部类
+
+2. 成员内部类 ，可以有final static 属性，但是绝不能有方法，对象
+
+3. 局部内部类（位置：方法内，块内，构造器内）
+
+4. 匿名内部类 ：继承一个父类或者实现一个接口的方式直接定义并使用的类
+
+   ```java
+   public abstract class Worker {
+       private String name;
+   
+       public String getName() {
+           return name;
+       }
+   
+       public void setName(String name) {
+           this.name = name;
+       }
+       public abstract int workTime();
+   
+   }
+   public class Test{
+       public void test(Worker worker){
+           System.out.println(worker.getName()+"工作时间："+worker.workTime());
+       }
+   
+       public static void main(String[] args) {
+           Test test = new Test();
+           //在方法中定义并使用匿名内部类
+           test.test(new Worker() {
+               @Override
+               public int workTime() {
+                   return 8;
+               }
+               public String getName(){
+                   return "alex";
+               }
+           });
+       }
+   }
+   ```
+
+   
 
 ### 1.5.2、代码块分类：
 
@@ -61,6 +106,8 @@
 ## 1.6、包
 
 在Java中的导包没有包含和被包含的关系：
+
+包可以包含类，但是不可以包含包 
 
 导入的类是两个东西
 
@@ -163,6 +210,22 @@ df2.format、parse
 
 ## 2.4、测试
 
-@before
+1. @Test加在方法上即可
+2. @Before，@After
 
-@after
+## 2.5、注解
+
+1. @interface 定义注解
+   ![image-20220804184314214](/Users/liuyi/Library/Application Support/typora-user-images/image-20220804184314214.png)
+
+2. 属性
+
+   Object value()
+
+   Object可以是8中基本数据类型，string，枚举，注解，数组类型
+
+   value是属性名字，必须加上（）
+
+3. a
+
+4. 
