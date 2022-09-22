@@ -14,6 +14,8 @@
 
 5. Unicode：国际通用字符集，融合了目前人类使用的所有字符。为每个字符分配唯一的字符码。
 
+   底层计算时候，按照码进行计算（jvm中全部转换为unicode）
+
    推出了UTF标准：
 
    三种编码方案：  UTF-8，UTF-16,UTF-32 
@@ -28,7 +30,6 @@
 2. 只能保存一个字符
 3. 不可以表达null（char a = ''编译出错）
 4. 转义字符（\ 会把之后的字母转换为特殊含义）
-5. 底层计算时候，按照码进行计算（jvm中全部转换为unicode）
 
 ## 1.3、基本类型转换
 
@@ -46,17 +47,38 @@
 
 ## 1.5、类的组成
 
+对象头：
+
+1. 标记字：标记运行时信息，**待补充**
+2. 类指针（ClassMetadataAddressClassWord）：指向生成该对象所在的类
+3. 数组长度
+
 ![image-20220517135007513](../../images/image-20220517135007513.png)
 
 ### 1.5.1、类的组成：
 
 类的组成：属性，方法，构造器，代码块（普通块，静态块，构造块，同步块），内部类
 
+代码块：
+
+1. 普通块：就是方法体
+2. 构造块：每新建对象，就会执行一次
+3. 静态块：类初始化的时候执行，只会执行一次
+4. 构造块+synchronized
+5. 创建对象执行顺序
+   - 父类静态代码块，静态属性（同一级别间按照定义顺序执行）
+   - 子类静态代码块，静态属性（同一级别间按照定义顺序执行）
+   - 父类普通代码块，属性（同一级别间按照定义顺序执行）
+   - 父类构造函数
+   - 子类普通代码块，属性（同一级别间按照定义顺序执行）
+   - 子类构造函数
+   - 注：如果子类已经重写父类，那么新建子类对象的时候父类会执行子类重写方法
+
 内部类：
 
 1. 静态内部类
 
-2. 成员内部类 ，可以有final static 属性，但是绝不能有方法，对象
+2. 成员内部类 ，可以有final static 属性(属性不能是方法），但是绝不能有静态方法
 
 3. 局部内部类（位置：方法内，块内，构造器内）
 
@@ -96,12 +118,6 @@
        }
    }
    ```
-
-   
-
-### 1.5.2、代码块分类：
-
-普通块（方法内部），构造块（类内部，方法外），静态块，同步块（多线程）
 
 ## 1.6、包
 
@@ -216,16 +232,186 @@ df2.format、parse
 ## 2.5、注解
 
 1. @interface 定义注解
-   ![image-20220804184314214](/Users/liuyi/Library/Application Support/typora-user-images/image-20220804184314214.png)
+
+   ```java
+   public @interface MyAnnotation{
+     Object value() default = "aaa"
+   }
+   ```
 
 2. 属性
 
-   Object value()
+   类型Object可以是8种类基本数据类型、string、枚举、注解、数组类型
 
-   Object可以是8中基本数据类型，string，枚举，注解，数组类型
+   value()是属性名字，必须加()
 
-   value是属性名字，必须加上（）
+3. 赋值
 
-3. a
+   如果注解没有默认值default的话，要赋值参数
 
-4. 
+   格式为 name = 。。。。
+
+   属性名字是value，value= 可以不写
+
+3. @Repartment
+
+4. 元注解
+
+   - @Retention
+
+   ```java
+   Retentionpolicy.SOURCE :.java 源文件中有效
+   Retentionpolicy.CLASS（默认） : .java、.class文件中有效
+   Retentionpolicy.RUNTIME : .java、.class、jvm中有效 
+   ```
+
+   - @Target
+
+   ```java
+   ElementType.TYPE：允许被修饰的注解作用在类、接口和枚举上
+   ElementType.FIELD：允许作用在属性字段上
+   ElementType.METHOD：允许作用在方法上
+   ElementType.PARAMETER：允许作用在方法参数上
+   ElementType.CONSTRUCTOR：允许作用在构造器上
+   ElementType.LOCAL_VARIABLE：允许作用在本地局部变量上
+   ElementType.ANNOTATION_TYPE：允许作用在注解上
+   ElementType.PACKAGE：允许作用在包上
+   ```
+
+   - @Document
+
+   ```java
+   生成javadoc的时候会把该注解注释的注解写入document里面
+   ```
+
+   - @Inherited
+
+   ```java
+   使用@Inherited声明出来的注解，只有在类上使用才会有效，对方法和属性等其他无效。
+   子类会自动继承注解
+   ```
+
+## 2.6、反射
+
+反射机制可以操作字节码文件（可以读和修改字节码文件。）
+
+```
+相关的类在
+java.lang.reflect.*;
+```
+
+1. 得到类信息方式
+
+   - 对象.getClass() 
+   - 任何类型.class;
+   - Class.forName("完整包名+类名")，"Javase.reflectBean.User"
+   - ClassLoader 
+
+2. 可以作为类的实例
+
+   ```
+   类（内部，外部）
+   接口
+   注解
+   数组
+   基本数据类型
+   void
+   
+   数组同一维度，同一元素类型的字节码是一个
+   int arr1 = {1,2,3}
+   int arr2 = {2,3,4}
+   arr1.getClass = arr2.getClass
+   ```
+
+3. 常用方法
+
+   ```java
+   CLASS 方法：
+   ///newInstance()方法内部实际上调用了无参数构造方法，必须保证无参构造存在才可以。
+   class.newInstance()
+   class.getName()//返回完整类名带包名
+   class.getSimpleName()//返回类名
+   class.getFields()//返回类中public修饰的属性 
+   class.getDeclaredFields()//返回类中所有的属性  
+   class.getDeclaredField(String name)//根据属性名name获取指定的属性  
+   class.getModifiers()//获取属性的修饰符列表,返回的修饰符是一个数字，每个数字是修饰符的代号【一般配合Modifier类的toString(int x)方法使用】 
+   class.getDeclaredMethods()  
+   class.getDeclaredMethod(String name, Class<?>… parameterTypes) 
+   class.getDeclaredConstructors()  
+   class.getSuperclass()//返回调用类的父类
+   class.getInterfaces()//返回调用类实现的接口集合
+     
+     
+   Field方法：
+   f.getName()
+   f.getModifiers()
+   f.getType()
+   f.set(对象obj， 值value)
+   f.get(对象obj)
+   f.setAccessible(boolean) ///可以操作私有属性
+     
+   Method方法：
+   m.getName()
+   m.getModifiers()  ///一般配合Modifier.toString(int x)
+   m.getReturnType()  ///一般配合Class类的getSimpleName()方法使用
+   m.getParameterTypes() ////一般配合Class类的getSimpleName()方法使用
+   m.invoke(Object obj, Object… args))  ////方法.invoke(对象, 实参);
+   
+   construct不介绍了
+   ```
+
+
+## 2.7、lambda
+
+<u>**效率低下，比正常的方法调用慢了几十倍**</u>
+
+1. 原理
+
+   匿名内部类本质是**编译**时生成内部类
+
+   lambda表达式是运行时生成类，类中重写调用lambda的方法，新增方法（内容是lambda）
+
+   前提是必须有一个函数式接口----》有且只有**一个**抽象方法的接口，一般有@FunctionnaInterface注解，否则无法映射
+
+2. 接口增强
+
+   - 1.8之前只能有静态常量和抽象方法
+
+   - 1.8之后可以存在默认方法和静态方法（否则不利于接口扩展，比如一个接口有几百个实现类，修改接口后要修改几百个地方）
+   - 默认方法不强制重新给，但是可以重写
+   - 静态方法不可以重写，并且只能通过. **接口类**.class调用，实现类或对象不能调用
+
+   ```
+   修饰符 default 返回值类型 方法名{
+   
+   }
+   
+   修饰符 static 返回值类型 方法名{
+   
+   }
+   ```
+
+3. 常用的函数式接口（jdk已经提供了大量的函数式接口，几乎可以满足一切要求，不需要我们再定义）
+
+   ```java
+   无参数有返回值 Supplier<Object> supplier
+   有参，无返回值 Consumer<T> consumer
+   有参，有返回值 Function<t，r> function
+   有参，boolean返回值 Predicate<T> predicate
+   ```
+
+4. 语法格式
+
+   ```java
+   除了::（方法引用）符号外，其余语法不介绍
+   对象名::普通方法名
+   类名::普通方法名&&静态方法&& new 构造器
+   数组::构造器
+   ```
+
+## 2.8、stream
+
+早就会了，不介绍了。
+
+https://blog.csdn.net/mu_wind/article/details/109516995
+
