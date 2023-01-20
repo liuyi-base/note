@@ -253,8 +253,6 @@ df2.format、parse
 
    属性名字是value，value= 可以不写
 
-3. @Repartment
-
 4. 元注解
 
    - @Retention
