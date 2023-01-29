@@ -11,7 +11,7 @@
    - 1、命令行启动应用时候由JVM初始化加载
    - 2、通过Class.forName()方法动态加载
    - 3、通过ClassLoader.loadClass()方法动态加载
-1
+
 ## 1.2，类的生命周期
 
 ![image-20220210144747919](../../images/image-20220210144747919.png)
